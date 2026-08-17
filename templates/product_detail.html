@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<p><a href="/products">&larr; Back to Products</a></p>
+
+<div class="product-card" style="max-width:700px; margin:1rem auto; padding:2rem; border:1px solid #ddd; border-radius:8px;">
+  <div style="font-size:4rem; text-align:center; margin-bottom:1rem;">
+    {{ product|product_type_icon }}
+  </div>
+
+  <h1 style="text-align:center;">{{ product.name }}</h1>
+
+  <p style="font-size:2rem; text-align:center; font-weight:bold; color:#198754;">${{ "%.2f"|format(product.price) }}</p>
+
+  {% if product.description %}
+  <p style="text-align:center; color:#555;">{{ product.description }}</p>
+  {% endif %}
+
+  <hr>
+
+  {# ── Stock / Type info ── #}
+  <div style="margin:1rem 0;">
+    <strong>Availability:</strong>
+    {% set ptype = product.product_type().value %}
+    {% if ptype == "PHYSICAL" %}
+      {{ product.stock }} in stock
+    {% elif ptype == "DIGITAL" %}
+      Digital download
+    {% elif ptype == "SUBSCRIPTION" %}
+      {{ product.duration_months }} month{{ 's' if product.duration_months != 1 }} plan
+    {% endif %}
+  </div>
+
+  {# ── Physical-only: weight ── #}
+  {% if ptype == "PHYSICAL" and product.weight_kg is defined %}
+  <div style="margin:0.5rem 0;">
+    <strong>Weight:</strong> {{ product.weight_kg }} kg
+  </div>
+  {% endif %}
+
+  {# ── Digital-only: file info ── #}
+  {% if ptype == "DIGITAL" and product.file_url is defined %}
+  <div style="margin:0.5rem 0;">
+    <strong>File URL:</strong> {{ product.file_url }}<br>
+    <strong>File Size:</strong> {{ product.file_size_mb }} MB
+  </div>
+  {% endif %}
+
+  {# ── Subscription-only: duration ── #}
+  {% if ptype == "SUBSCRIPTION" and product.duration_months is defined %}
+  <div style="margin:0.5rem 0;">
+    <strong>Duration:</strong> {{ product.duration_months }} month{{ 's' if product.duration_months != 1 }}
+  </div>
+  {% endif %}
+
+  {# ── Category ── #}
+  {% if product.category %}
+  <div style="margin:0.5rem 0;">
+    <strong>Category:</strong> {{ product.category.name }}
+  </div>
+  {% endif %}
+
+  {# ── Active / Inactive badge ── #}
+  <div style="margin:0.5rem 0;">
+    {% if product.is_active %}
+      <span style="display:inline-block; padding:0.25rem 0.75rem; border-radius:4px; background:#198754; color:#fff;">Active</span>
+    {% else %}
+      <span style="display:inline-block; padding:0.25rem 0.75rem; border-radius:4px; background:#dc3545; color:#fff;">Inactive</span>
+    {% endif %}
+  </div>
+
+  <hr>
+
+  {# ── Add to Cart ── #}
+  {% if product.is_active %}
+  <form method="POST" action="/cart/add" style="display:flex; align-items:center; gap:0.5rem; justify-content:center; margin-top:1rem;">
+    <input type="hidden" name="product_id" value="{{ product.product_id }}">
+    <label for="quantity"><strong>Qty:</strong></label>
+    <input type="number" id="quantity" name="quantity" value="1" min="1" style="width:70px; padding:0.3rem;">
+    <button type="submit" class="btn">Add to Cart</button>
+  </form>
+  {% else %}
+  <p style="text-align:center; color:#999; margin-top:1rem;"><em>This product is currently unavailable.</em></p>
+  {% endif %}
+</div>
+{% endblock %}

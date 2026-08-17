@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-7 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">Order Summary</h4>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-bordered mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Item</th>
+              <th class="text-center">Qty</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-end">${{ "%.2f"|format(item.line_total) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center text-muted py-4">Your cart is empty.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <div class="d-flex justify-content-between mb-1">
+          <span>Subtotal:</span>
+          <span>${{ "%.2f"|format(subtotal) }}</span>
+        </div>
+        {% if customer_discount %}
+        <div class="d-flex justify-content-between mb-1 text-success">
+          <span>Customer Discount ({{ customer.customer_type.value }}):</span>
+          <span>-${{ "%.2f"|format(customer_discount) }}</span>
+        </div>
+        {% endif %}
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5">
+          <span>Total:</span>
+          <span>${{ "%.2f"|format(total) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">Checkout</h4>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('checkout') }}">
+
+          <h6 class="text-muted mb-2">Delivery Method</h6>
+          <div class="mb-3">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="delivery" id="deliveryStandard" value="standard" checked>
+              <label class="form-check-label" for="deliveryStandard">
+                Standard (5-7 days) — $5.99+
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="delivery" id="deliveryExpress" value="express">
+              <label class="form-check-label" for="deliveryExpress">
+                Express (2-3 days) — $12.99+
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="delivery" id="deliverySameDay" value="same_day">
+              <label class="form-check-label" for="deliverySameDay">
+                Same-Day (today) — $24.99+
+              </label>
+            </div>
+          </div>
+
+          <hr>
+
+          <h6 class="text-muted mb-2">Promo Code</h6>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" name="promo_code" placeholder="Enter promo code">
+            <button class="btn btn-outline-secondary" type="submit" name="apply_promo" value="1">Apply</button>
+          </div>
+
+          <h6 class="text-muted mb-2">Payment Method</h6>
+          <div class="mb-3">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="payment" id="paymentCreditCard" value="credit_card" checked>
+              <label class="form-check-label" for="paymentCreditCard">Credit Card</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="payment" id="paymentBankTransfer" value="bank_transfer">
+              <label class="form-check-label" for="paymentBankTransfer">Bank Transfer</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="payment" id="paymentDigitalWallet" value="digital_wallet">
+              <label class="form-check-label" for="paymentDigitalWallet">Digital Wallet</label>
+            </div>
+          </div>
+
+          <div id="creditCardFields">
+            <div class="mb-3">
+              <label for="card_number" class="form-label">Card Number</label>
+              <input type="text" class="form-control" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+            </div>
+            <div class="mb-3">
+              <label for="cardholder_name" class="form-label">Cardholder Name</label>
+              <input type="text" class="form-control" id="cardholder_name" name="card_name" placeholder="John Doe">
+            </div>
+            <div class="mb-3">
+              <label for="card_expiry" class="form-label">Expiry Date</label>
+              <input type="text" class="form-control" id="card_expiry" name="card_expiry" placeholder="MM/YY">
+            </div>
+          </div>
+
+          <div id="bankTransferFields" class="d-none">
+            <div class="mb-3">
+              <label for="account_number" class="form-label">Account Number</label>
+              <input type="text" class="form-control" id="account_number" name="bank_account" placeholder="Account number">
+            </div>
+            <div class="mb-3">
+              <label for="bank_name" class="form-label">Bank Name</label>
+              <input type="text" class="form-control" id="bank_name" name="bank_name" placeholder="Bank name">
+            </div>
+          </div>
+
+          <div id="digitalWalletFields" class="d-none">
+            <div class="alert alert-info mb-0">
+              Pay from wallet balance
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="mb-3">
+            <span class="text-muted">Customer Type:</span>
+            <span class="badge bg-info">{{ customer.customer_type.value }}</span>
+            {% if customer_discount %}
+            <small class="text-success ms-1">(discount applied)</small>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fs-5 fw-bold">Total:</span>
+            <span class="fs-4 fw-bold">${{ "%.2f"|format(total) }}</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100">Place Order</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+    const creditCardFields = document.getElementById('creditCardFields');
+    const bankTransferFields = document.getElementById('bankTransferFields');
+    const digitalWalletFields = document.getElementById('digitalWalletFields');
+
+    function togglePaymentFields() {
+      const selected = document.querySelector('input[name="payment"]:checked').value;
+
+      creditCardFields.classList.add('d-none');
+      bankTransferFields.classList.add('d-none');
+      digitalWalletFields.classList.add('d-none');
+
+      if (selected === 'credit_card') {
+        creditCardFields.classList.remove('d-none');
+      } else if (selected === 'bank_transfer') {
+        bankTransferFields.classList.remove('d-none');
+      } else if (selected === 'digital_wallet') {
+        digitalWalletFields.classList.remove('d-none');
+      }
+    }
+
+    paymentRadios.forEach(function (radio) {
+      radio.addEventListener('change', togglePaymentFields);
+    });
+
+    togglePaymentFields();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - TechMart{% endblock %}
+
+{% block content %}
+<h1>Shopping Cart</h1>
+
+{% if not items %}
+<div style="text-align:center;padding:3rem;">
+  <p style="font-size:1.2rem;color:#666;">Your cart is empty.</p>
+  <a href="/products" style="display:inline-block;margin-top:1rem;padding:0.5rem 1.5rem;background:#1a1a2e;color:white;border-radius:6px;text-decoration:none;">Continue Shopping</a>
+</div>
+{% else %}
+<div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="border-bottom:2px solid #ddd;">
+        <th style="padding:10px;text-align:left;">Product</th>
+        <th style="padding:10px;text-align:right;">Price</th>
+        <th style="padding:10px;text-align:center;">Quantity</th>
+        <th style="padding:10px;text-align:right;">Subtotal</th>
+        <th style="padding:10px;text-align:center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:10px;">
+          <a href="/product/{{ item.product.product_id }}" style="text-decoration:none;color:#1a1a2e;">{{ item.product.name }}</a>
+        </td>
+        <td style="padding:10px;text-align:right;">${{ "%.2f"|format(item.product.price) }}</td>
+        <td style="padding:10px;text-align:center;">
+          <form method="POST" action="/cart/update" style="display:inline;">
+            <input type="hidden" name="product_id" value="{{ item.product.product_id }}">
+            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width:60px;padding:4px;border:1px solid #ccc;border-radius:4px;">
+            <button type="submit" style="padding:4px 8px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;">Update</button>
+          </form>
+        </td>
+        <td style="padding:10px;text-align:right;">${{ "%.2f"|format(item.line_total) }}</td>
+        <td style="padding:10px;text-align:center;">
+          <form method="POST" action="/cart/remove" style="display:inline;">
+            <input type="hidden" name="product_id" value="{{ item.product.product_id }}">
+            <button type="submit" style="padding:4px 8px;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:right;margin-top:1.5rem;padding:1.5rem;background:#f8f9fa;border-radius:8px;">
+  <p style="margin:0.3rem 0;">Subtotal: <strong>${{ "%.2f"|format(subtotal) }}</strong></p>
+  {% if customer %}
+<p style="margin:0.3rem 0;color:#198754;">
+  Customer Discount ({{ customer.customer_type.value }}):
+  <strong>-${{ "%.2f"|format(customer_discount) }}</strong>
+</p>
+{% else %}
+<p style="margin:0.3rem 0;color:#6c757d;">
+  Customer Discount: <strong>$0.00</strong>
+</p>
+{% endif %}  
+  <p style="margin:0.3rem 0;font-size:1.2rem;">Total: <strong>${{ "%.2f"|format(total) }}</strong></p>
+  <div style="margin-top:1rem;">
+    <a href="/checkout" style="display:inline-block;padding:0.7rem 2rem;background:#1a1a2e;color:white;border-radius:6px;text-decoration:none;margin-right:0.5rem;">Proceed to Checkout</a>
+    <a href="/products" style="display:inline-block;padding:0.7rem 2rem;background:#6c757d;color:white;border-radius:6px;text-decoration:none;">Continue Shopping</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

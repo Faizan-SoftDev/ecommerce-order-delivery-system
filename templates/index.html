@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}TechMart - Home{% endblock %}
+
+{% block content %}
+<style>
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    text-align: center;
+    padding: 60px 20px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+  }
+  .hero h1 { margin: 0 0 10px 0; font-size: 2.5rem; }
+  .hero p { margin: 0; font-size: 1.2rem; opacity: 0.85; }
+  .category-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+  .category-pills a {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #e9ecef;
+    color: #333;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    transition: background 0.2s, color 0.2s;
+  }
+  .category-pills a:hover {
+    background: #0f3460;
+    color: #fff;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .product-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s;
+  }
+  .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .product-card .icon { font-size: 2rem; margin-bottom: 10px; }
+  .product-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+  }
+  .product-card .price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #0f3460;
+    margin-bottom: 6px;
+  }
+  .product-card .stock {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 14px;
+  }
+  .product-card .stock.in-stock { color: #198754; }
+  .product-card .stock.low-stock { color: #dc3545; }
+  .product-card .actions {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .product-card .actions form { display: inline; }
+  .btn-add {
+    padding: 8px 16px;
+    background: #0f3460;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .btn-add:hover { background: #16213e; }
+  .btn-details {
+    padding: 8px 16px;
+    background: transparent;
+    color: #0f3460;
+    border: 1px solid #0f3460;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .btn-details:hover { background: #f0f4ff; }
+  .no-products {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+    font-size: 1.1rem;
+  }
+</style>
+
+<div class="hero">
+  <h1>Welcome to TechMart</h1>
+  <p>Quality products, fast delivery</p>
+</div>
+
+{% if categories %}
+<div class="category-pills">
+  <a href="/products">All</a>
+  {% for category in categories %}
+  <a href="/products?category={{ category.name }}">{{ category.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if products %}
+<div class="product-grid">
+  {% for product in products %}
+  <div class="product-card">
+    <div class="icon">{{ product|product_type_icon }}</div>
+    <h3>{{ product.name }}</h3>
+    <div class="price">${{ "%.2f"|format(product.price) }}</div>
+    <div class="stock {% if product.requires_shipping() %}{% if product.stock > 10 %}in-stock{% elif product.stock > 0 %}in-stock{% else %}low-stock{% endif %}{% endif %}">
+      {% if product.requires_shipping() %}
+        {{ product.stock }} in stock
+      {% elif product.product_type().value == "SUBSCRIPTION" %}
+        Subscription
+      {% else %}
+        Digital
+      {% endif %}
+    </div>
+    <div class="actions">
+      <form method="POST" action="/cart/add">
+        <input type="hidden" name="product_id" value="{{ product.product_id }}">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="btn-add">Add to Cart</button>
+      </form>
+      <a href="/product/{{ product.product_id }}" class="btn-details">Details</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="no-products">
+  <p>No products available</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TechMart{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: #1a1a2e;
+            color: white;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e94560;
+            text-decoration: none;
+            padding: 1rem 0;
+            letter-spacing: 1px;
+        }
+
+        .navbar-brand:hover {
+            color: #ff6b81;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .navbar-links a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .navbar-links a:hover,
+        .navbar-links a.active {
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+        }
+
+        .cart-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .cart-badge {
+            background: #e94560;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.45rem;
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            min-width: 18px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .customer-info {
+            color: #aaa;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .customer-info .customer-type {
+            background: #e94560;
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .customer-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .customer-selector form {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+        }
+
+        .customer-selector select,
+        .customer-selector input {
+            padding: 0.35rem 0.5rem;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            background: #16213e;
+            color: white;
+            outline: none;
+        }
+
+        .customer-selector select:focus,
+        .customer-selector input:focus {
+            border-color: #e94560;
+        }
+
+        .customer-selector input::placeholder {
+            color: #666;
+        }
+
+        .customer-selector input[type="text"],
+        .customer-selector input[type="email"] {
+            width: 120px;
+        }
+
+        .customer-selector button {
+            padding: 0.35rem 0.8rem;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .customer-selector button:hover {
+            background: #c73652;
+        }
+
+        .flash-messages {
+            padding: 0 2rem;
+        }
+
+        .flash {
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .flash.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        footer {
+            background: #1a1a2e;
+            color: #888;
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.85rem;
+            margin-top: auto;
+        }
+
+        footer span {
+            color: #e94560;
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .navbar-links {
+                gap: 0.2rem;
+            }
+
+            .navbar-links a {
+                padding: 0.5rem 0.7rem;
+                font-size: 0.85rem;
+            }
+
+            .customer-selector form {
+                flex-wrap: wrap;
+                gap: 0.3rem;
+            }
+
+            .customer-selector input[type="text"],
+            .customer-selector input[type="email"] {
+                width: 100px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.5rem 1rem;
+            }
+
+            .navbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .customer-selector form {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .customer-selector input[type="text"],
+            .customer-selector input[type="email"] {
+                flex: 1;
+                min-width: 80px;
+            }
+
+            .flash-messages {
+                padding: 0 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">TechMart</a>
+
+        <div class="navbar-links">
+            <a href="{{ url_for('products_list') }}">Products</a>
+            <a href="{{ url_for('orders_list') }}">Orders</a>
+            <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+            <a href="{{ url_for('cart_view') }}" class="cart-link">
+                &#128722; Cart
+                {% if cart_count is defined and cart_count > 0 %}
+                    <span class="cart-badge">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+        </div>
+
+        <div class="navbar-right">
+            {% if customer is defined and customer %}
+                <div class="customer-info">
+                    <span class="customer-type">{{ customer.customer_type }}</span>
+                    {{ customer.name }}
+                </div>
+            {% else %}
+                <div class="customer-selector">
+                    <form method="POST" action="{{ url_for('customer_select') }}">
+                        <select name="customer_type" required>
+                            <option value="" disabled selected>Type</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Premium">Premium</option>
+                            <option value="Business">Business</option>
+                        </select>
+                        <input type="text" name="name" placeholder="Name" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <button type="submit">Select</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 <span>TechMart</span> &mdash; E-Commerce OOP Assignment</p>
+    </footer>
+</body>
+</html>

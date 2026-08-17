@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - TechMart{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<div class="stats-row" style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+  <div class="card" style="flex:1;min-width:150px;padding:1.5rem;text-align:center;background:#e8f5e9;">
+    <h3 style="margin:0;color:#2e7d32;">Products</h3>
+    <p style="font-size:2rem;margin:0.5rem 0;">{{ store.product_count }}</p>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;padding:1.5rem;text-align:center;background:#e3f2fd;">
+    <h3 style="margin:0;color:#1565c0;">Orders</h3>
+    <p style="font-size:2rem;margin:0.5rem 0;">{{ orders|length }}</p>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;padding:1.5rem;text-align:center;background:#fce4ec;">
+    <h3 style="margin:0;color:#c62828;">Customers</h3>
+    <p style="font-size:2rem;margin:0.5rem 0;">{{ customers|length }}</p>
+  </div>
+  <div class="card" style="flex:1;min-width:150px;padding:1.5rem;text-align:center;background:#fff3e0;">
+    <h3 style="margin:0;color:#e65100;">Revenue</h3>
+    <p style="font-size:2rem;margin:0.5rem 0;">${{ "%.2f"|format(total_revenue) }}</p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;padding:1.5rem;">
+  <h2>Products</h2>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="padding:8px;text-align:left;">Name</th>
+          <th style="padding:8px;text-align:left;">Type</th>
+          <th style="padding:8px;text-align:right;">Price</th>
+          <th style="padding:8px;text-align:right;">Stock</th>
+          <th style="padding:8px;text-align:center;">Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in store.products %}
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px;">{{ product.name }}</td>
+          <td style="padding:8px;">{{ product.product_type().value }}</td>
+          <td style="padding:8px;text-align:right;">${{ "%.2f"|format(product.price) }}</td>
+          <td style="padding:8px;text-align:right;">{{ product.stock }}</td>
+          <td style="padding:8px;text-align:center;">{{ "Yes" if product.is_active else "No" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;padding:1.5rem;">
+  <h2>Recent Orders</h2>
+  {% if orders %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="padding:8px;text-align:left;">Order ID</th>
+          <th style="padding:8px;text-align:left;">Status</th>
+          <th style="padding:8px;text-align:right;">Total</th>
+          <th style="padding:8px;text-align:left;">Customer</th>
+          <th style="padding:8px;text-align:left;">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders[:20] %}
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px;"><a href="/order/{{ order.order_id }}">#{{ order.order_id }}</a></td>
+          <td style="padding:8px;">
+            <span style="background:{{ order.status.value|status_color }};color:white;padding:2px 8px;border-radius:4px;font-size:0.85em;">{{ order.status.value }}</span>
+          </td>
+          <td style="padding:8px;text-align:right;">${{ "%.2f"|format(order.total) }}</td>
+          <td style="padding:8px;">{{ order.customer.name }}</td>
+          <td style="padding:8px;">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#666;">No orders yet.</p>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-bottom:2rem;padding:1.5rem;">
+  <h2>Customers</h2>
+  {% if customers %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="padding:8px;text-align:left;">Name</th>
+          <th style="padding:8px;text-align:left;">Email</th>
+          <th style="padding:8px;text-align:left;">Type</th>
+          <th style="padding:8px;text-align:right;">Balance</th>
+          <th style="padding:8px;text-align:right;">Orders</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px;">{{ customer.name }}</td>
+          <td style="padding:8px;">{{ customer.email }}</td>
+          <td style="padding:8px;">{{ customer.customer_type.value }}</td>
+          <td style="padding:8px;text-align:right;">${{ "%.2f"|format(customer.balance) }}</td>
+          <td style="padding:8px;text-align:right;">{{ customer.orders|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#666;">No customers registered yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

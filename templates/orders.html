@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<h1>My Orders</h1>
+
+{% if orders %}
+<table>
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Status</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Date</th>
+            <th>Customer</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td><a href="/order/{{ order.order_id }}">#{{ order.order_id }}</a></td>
+            <td><span class="badge" style="background-color: {{ order.status.value|status_color }}; color: white; padding: 4px 8px; border-radius: 4px;">{{ order.status.value }}</span></td>
+            <td>{{ order.items|length }}</td>
+            <td>${{ order.total }}</td>
+            <td>{{ order.created_at }}</td>
+            <td>{{ order.customer_name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No orders yet</p>
+<p><a href="/products">Browse products</a></p>
+{% endif %}
+{% endblock %}

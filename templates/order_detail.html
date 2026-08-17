@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.order_id }} - TechMart{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+    <div>
+      <h1 style="margin:0;">Order #{{ order.order_id }}</h1>
+      <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;">
+        <span style="background:{{ order.status.value|status_color }};color:white;padding:4px 12px;border-radius:20px;font-size:0.9em;">{{ order.status.value }}</span>
+        <span style="color:#666;font-size:0.9em;">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+      </div>
+    </div>
+    <a href="/orders" style="text-decoration:none;color:#1a1a2e;">&larr; Back to Orders</a>
+  </div>
+
+  <div style="background:white;border:1px solid #e0e0e0;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 0.5rem 0;font-size:1.1rem;">Customer</h2>
+    <p style="margin:0;color:#333;">{{ order.customer.name }} ({{ order.customer.customer_type.value }})</p>
+  </div>
+
+  <div style="background:white;border:1px solid #e0e0e0;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 1rem 0;font-size:1.1rem;">Items</h2>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #eee;">
+          <th style="padding:8px;text-align:left;">Product</th>
+          <th style="padding:8px;text-align:center;">Qty</th>
+          <th style="padding:8px;text-align:right;">Unit Price</th>
+          <th style="padding:8px;text-align:right;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:8px;">{{ item.product.name }}</td>
+          <td style="padding:8px;text-align:center;">{{ item.quantity }}</td>
+          <td style="padding:8px;text-align:right;">${{ "%.2f"|format(item.unit_price) }}</td>
+          <td style="padding:8px;text-align:right;">${{ "%.2f"|format(item.subtotal) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:white;border:1px solid #e0e0e0;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 1rem 0;font-size:1.1rem;">Financial Summary</h2>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Subtotal</span><span>${{ "%.2f"|format(order.subtotal) }}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Shipping ({{ order.delivery_method.name }})</span><span>${{ "%.2f"|format(order.shipping_cost) }}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Tax</span><span>${{ "%.2f"|format(order.tax) }}</span></div>
+    {% if order.customer_discount > 0 %}
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Customer Discount</span><span style="color:#dc3545;">-${{ "%.2f"|format(order.customer_discount) }}</span></div>
+    {% endif %}
+    {% if order.promo_discount_amount > 0 %}
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Promo Discount</span><span style="color:#dc3545;">-${{ "%.2f"|format(order.promo_discount_amount) }}</span></div>
+    {% endif %}
+    {% if order.additional_charges > 0 %}
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Additional Charges</span><span>+${{ "%.2f"|format(order.additional_charges) }}</span></div>
+    {% endif %}
+    <hr style="margin:0.5rem 0;">
+    <div style="display:flex;justify-content:space-between;font-size:1.2rem;font-weight:bold;"><span>Total</span><span>${{ "%.2f"|format(order.total) }}</span></div>
+  </div>
+
+  {% if order.payment_method %}
+  <div style="background:white;border:1px solid #e0e0e0;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 1rem 0;font-size:1.1rem;">Payment</h2>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Method</span><span>{{ order.payment_method.name }}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Status</span><span>{{ order.payment_method.status.value }}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:#666;">Amount</span><span>${{ "%.2f"|format(order.payment_method.amount) }}</span></div>
+  </div>
+  {% endif %}
+
+  <div style="background:white;border:1px solid #e0e0e0;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 1rem 0;font-size:1.1rem;">Actions</h2>
+
+    {% if order.status.value == "CREATED" %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="confirm" style="width:100%;padding:10px;background:#0d6efd;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Confirm Order</button>
+    </form>
+    {% endif %}
+
+    {% if order.status.value == "PAID" %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="process" style="width:100%;padding:10px;background:#0d6efd;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Process Order</button>
+    </form>
+    {% endif %}
+
+    {% if order.status.value == "PROCESSING" %}
+    {% if not order.has_physical_items %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="ship" style="width:100%;padding:10px;background:#198754;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Deliver (Digital)</button>
+    </form>
+    {% else %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="ship" style="width:100%;padding:10px;background:#198754;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Ship Order</button>
+    </form>
+    {% endif %}
+    {% endif %}
+
+    {% if order.status.value == "SHIPPED" %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="deliver" style="width:100%;padding:10px;background:#198754;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Mark Delivered</button>
+    </form>
+    {% endif %}
+
+    {% if order.status.value == "DELIVERED" %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-bottom:0.5rem;">
+      <button type="submit" name="action" value="refund" style="width:100%;padding:10px;background:#ffc107;color:#000;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Request Refund</button>
+    </form>
+    {% endif %}
+
+    {% if order.status.value not in ["CANCELLED", "REFUNDED", "SHIPPED", "DELIVERED"] %}
+    <form method="POST" action="/order/{{ order.order_id }}/action" style="margin-top:0.5rem;">
+      <button type="submit" name="action" value="cancel" style="width:100%;padding:10px;background:#dc3545;color:white;border:none;border-radius:6px;cursor:pointer;font-size:1rem;">Cancel Order</button>
+    </form>
+    {% endif %}
+
+    {% if order.status.value in ["SHIPPED", "DELIVERED"] %}
+    <p style="color:#666;font-style:italic;font-size:0.9em;margin-top:0.5rem;">Order cannot be cancelled at this stage.</p>
+    {% endif %}
+  </div>
+
+  <a href="/orders" style="display:inline-block;padding:0.5rem 1rem;background:#6c757d;color:white;border-radius:6px;text-decoration:none;">&larr; Back to Orders</a>
+</div>
+{% endblock %}
